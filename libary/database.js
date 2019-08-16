@@ -4,8 +4,12 @@ class Database {
   constructor() {
     this.db_connect = mysql.createPool(database[database.default]);
     this.db_connect.getConnection(function(err) {
-      if (err) throw err;
-      console.log("Connected!");
+      try {
+        if (err) throw err;
+        console.log("Connected!");
+      } catch (err) {
+        console.log(err);
+      }
     });
     this.connection = this.db_connect;
   }

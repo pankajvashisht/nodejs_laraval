@@ -1,39 +1,42 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const bodyParser = require('body-parser'); 
-const fileUpload = require('express-fileupload'); 
+const createError = require("http-errors");
+const express = require("express");
+const path = require("path");
+const cookieParser = require("cookie-parser");
+const logger = require("morgan");
+const bodyParser = require("body-parser");
+const fileUpload = require("express-fileupload");
+const process = require("process");
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-const apiRouter = require('./routes/apis');
+const indexRouter = require("./routes/index");
+const usersRouter = require("./routes/users");
+const apiRouter = require("./routes/apis");
 
 var app = express();
 
 // body parser setup
-app.use(bodyParser.urlencoded({ extended: false }))
- 
-// parse application/json
-app.use(bodyParser.json())
-// file upload file
-app.use(fileUpload({
-  createParentPath: true
-}))
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(logger('dev'));
+// parse application/json
+app.use(bodyParser.json());
+// file upload file
+app.use(
+  fileUpload({
+    createParentPath: true
+  })
+);
+// view engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/apis/v1/', apiRouter);
+app.use("/", indexRouter);
+app.use("/users", usersRouter);
+app.use("/apis/v1/", apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -43,14 +46,29 @@ app.use(function(req, res, next) {
 // set path root path
 global.appRoot = path.resolve(__dirname);
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+  if (req.accepts("json")) {
+    res.status(404).json({
+      code: 404,
+      message: "not found"
+    });
+  }
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render("error");
 });
+
+
+
+process
+  .on("unhandledRejection", (reason, p) => {
+    console.error(reason, "Unhandled Rejection at Promise", p);
+  })
+  .on("uncaughtException", err => {
+    console.error(err, "Uncaught Exception thrown");
+  });
 
 module.exports = app;
